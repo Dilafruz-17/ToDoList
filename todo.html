@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do List</title>
+    <link rel="stylesheet" href="todo.css">
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>To Do List</h1>
+
+        <div class="to-do-layout">
+            <div class="input">
+                <input type="text" id="input">
+                <i class="bi bi-search"></i>
+            </div> 
+            <button id="add">Add</button>
+        </div>
+
+        <div class="functions" id="functions">
+        <div class="boxs">
+            <h3>List</h3>
+            <p id="exercise" draggable="true"></p>
+        </div>
+        <div class="boxs">
+            <h3>Progress</h3>
+            <p></p>
+        </div>
+        <div class="boxs">
+            <h3>Done</h3>
+            <p></p>
+        </div>
+    </div>
+
+    </div>
+    <script src="todo.js"></script>
+</body>
+</html>

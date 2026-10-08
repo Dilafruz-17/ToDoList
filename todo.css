@@ -1,0 +1,83 @@
+*{
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    background-color: rgb(231, 237, 250);
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container{
+    display: flex;
+    justify-content:center;
+    align-items: center;
+    flex-direction: column;
+    margin: 200px;
+    gap: 20px;
+}
+
+.to-do-layout{
+    display: flex;
+    justify-content:center;
+    align-items: center;
+    border: 1px solid rgb(18, 31, 87);
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px 30px;
+    gap: 20px;
+}
+
+.input{
+    display: flex;
+    padding: 10px;
+    border: 2px solid rgb(23, 29, 97);
+    border-radius: 10px;
+    width: 300px;
+    justify-content: space-between;
+}
+
+.input input{
+    outline: none;
+}
+
+.to-do-layout button{
+    background-color: rgb(12, 25, 144);
+    padding: 14px 20px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+}
+
+.bi-search{
+    font-size: 20px;
+}
+
+.functions{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 1000px;
+    padding: 10px;
+}
+
+.boxs{
+    background-color: white;
+    width: 300px;
+    height: 100px;
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid rgb(8, 20, 83);
+}
+
+#exercise{
+    cursor: grab
+}
