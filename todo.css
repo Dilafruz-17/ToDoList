@@ -1,83 +1,271 @@
-*{
-    border: 0;
+:root {
+    --bg: #f1edfb;
+    --text: #26215c;
+    --muted: #7a76a8;
+    --primary: #534ab7;
+    --primary-dark: #3c3489;
+    --border: #afa9ec;
+}
+
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-body{
-    background-color: rgb(231, 237, 250);
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: start;
-    height: 100vh;
-    font-family: Arial, Helvetica, sans-serif;
+    padding: 40px 20px;
 }
 
-.container{
+.app {
+    width: 100%;
+    max-width: 1100px;
+}
+
+/* ---------- Header ---------- */
+.header {
     display: flex;
-    justify-content:center;
     align-items: center;
-    flex-direction: column;
-    margin: 200px;
-    gap: 20px;
+    gap: 14px;
+    margin-bottom: 24px;
 }
 
-.to-do-layout{
-    display: flex;
-    justify-content:center;
-    align-items: center;
-    border: 1px solid rgb(18, 31, 87);
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px 30px;
-    gap: 20px;
-}
-
-.input{
-    display: flex;
-    padding: 10px;
-    border: 2px solid rgb(23, 29, 97);
-    border-radius: 10px;
-    width: 300px;
-    justify-content: space-between;
-}
-
-.input input{
-    outline: none;
-}
-
-.to-do-layout button{
-    background-color: rgb(12, 25, 144);
-    padding: 14px 20px;
-    border-radius: 10px;
+.logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background-color: var(--primary);
     color: white;
-    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
 }
 
-.bi-search{
+.header h1 {
+    font-size: 28px;
+}
+
+.header p {
+    color: var(--primary);
+    font-size: 15px;
+    margin-top: 2px;
+}
+
+/* ---------- Add form ---------- */
+.add-form {
+    display: flex;
+    gap: 12px;
+}
+
+.input-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-box:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(83, 74, 183, 0.2);
+}
+
+.input-box i {
+    color: #7f77dd;
     font-size: 20px;
 }
 
-.functions{
+.input-box input {
+    flex: 1;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 17px;
+    padding: 16px 0;
+}
+
+.add-form button {
+    background-color: var(--primary);
+    color: white;
+    border: 0;
+    border-radius: 14px;
+    padding: 0 32px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-form button:hover {
+    background-color: var(--primary-dark);
+}
+
+.error {
+    min-height: 22px;
+    margin: 8px 0 12px;
+    color: #a32d2d;
+    font-size: 14px;
+}
+
+/* ---------- Board ---------- */
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.column {
+    border: 2px dashed transparent;
+    border-radius: 16px;
+    padding: 8px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.column[data-status="list"] {
+    --head-bg: #cecbf6;
+    --head-text: #3c3489;
+    --stripe: #7f77dd;
+    --tint: #ebe9fc;
+}
+
+.column[data-status="progress"] {
+    --head-bg: #ebd440;
+    --head-text: #af7e0c;
+    --stripe: #d7902c;
+    --tint: #fae4c1;
+}
+
+.column[data-status="done"] {
+    --head-bg: #6af58d;
+    --head-text: #064b3e;
+    --stripe: #1d9e75;
+    --tint: #ecf9f4;
+}
+
+/* Vazifa ustun ustiga sudralganda */
+.column.drag-over {
+    border-color: var(--stripe);
+    background-color: var(--tint);
+}
+
+.column-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 1000px;
-    padding: 10px;
+    background-color: var(--head-bg);
+    color: var(--head-text);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
 }
 
-.boxs{
+.column-head h2 {
+    font-size: 18px;
+}
+
+.count {
     background-color: white;
-    width: 300px;
-    height: 100px;
-    border-radius: 10px;
-    padding: 10px;
+    border-radius: 999px;
+    min-width: 30px;
+    text-align: center;
+    padding: 3px 10px;
+    font-size: 14px;
+}
+
+/* ---------- Tasks ---------- */
+.task-list {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    border: 2px solid rgb(8, 20, 83);
+    gap: 10px;
+    min-height: 120px;
 }
 
-#exercise{
-    cursor: grab
+.task {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: white;
+    border-radius: 12px;
+    padding: 14px;
+    cursor: grab;
+    box-shadow: 0 1px 2px rgba(38, 33, 92, 0.08);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.task::before {
+    content: "";
+    width: 4px;
+    align-self: stretch;
+    background-color: var(--stripe);
+    border-radius: 2px;
+}
+
+.task:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(38, 33, 92, 0.12);
+}
+
+.task.dragging {
+    opacity: 0.4;
+}
+
+.grip {
+    color: var(--muted);
+}
+
+.task-text {
+    flex: 1;
+    word-break: break-word;
+}
+
+.column[data-status="done"] .task-text {
+    text-decoration: line-through;
+    color: var(--muted);
+}
+
+.delete {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 16px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.delete:hover {
+    background-color: #fcebeb;
+    color: #a32d2d;
+}
+
+.empty {
+    border: 2px dashed #cfcbe8;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* ---------- Telefon uchun ---------- */
+@media (max-width: 800px) {
+    .board {
+        grid-template-columns: 1fr;
+    }
+
+    .add-form button {
+        padding: 0 20px;
+    }
 }

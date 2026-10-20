@@ -1,40 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To Do List</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="todo.css">
- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
+
 <body>
-    <div class="container">
-        <h1>To Do List</h1>
+    <div class="app">
 
-        <div class="to-do-layout">
-            <div class="input">
-                <input type="text" id="input">
-                <i class="bi bi-search"></i>
-            </div> 
-            <button id="add">Add</button>
-        </div>
+        <header class="header">
+            <div class="logo"><i class="bi bi-check2-square"></i></div>
+            <div>
+                <h1>To Do List</h1>
+                <p id="summary">0 tasks, 0 done</p>
+            </div>
+        </header>
 
-        <div class="functions" id="functions">
-        <div class="boxs">
-            <h3>List</h3>
-            <p id="exercise" draggable="true"></p>
-        </div>
-        <div class="boxs">
-            <h3>Progress</h3>
-            <p></p>
-        </div>
-        <div class="boxs">
-            <h3>Done</h3>
-            <p></p>
-        </div>
-    </div>
+        <form class="add-form" id="add-form">
+            <div class="input-box">
+                <i class="bi bi-plus-lg"></i>
+                <input type="text" id="task-input" placeholder="What do you need to do?" autocomplete="off">
+            </div>
+            <button type="submit">Add</button>
+        </form>
+        <p class="error" id="error"></p>
+
+        <main class="board">
+            <section class="column" data-status="list">
+                <div class="column-head">
+                    <h2>List</h2>
+                    <span class="count">0</span>
+                </div>
+                <div class="task-list"></div>
+            </section>
+
+            <section class="column" data-status="progress">
+                <div class="column-head">
+                    <h2>Progress</h2>
+                    <span class="count">0</span>
+                </div>
+                <div class="task-list"></div>
+            </section>
+
+            <section class="column" data-status="done">
+                <div class="column-head">
+                    <h2>Done</h2>
+                    <span class="count">0</span>
+                </div>
+                <div class="task-list"></div>
+            </section>
+        </main>
 
     </div>
     <script src="todo.js"></script>
 </body>
+
 </html>
