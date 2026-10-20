@@ -1,166 +1,243 @@
 const STORAGE_KEY = "todo-tasks"
 
-const form = document.getElementById("add-form")
-const input = document.getElementById("task-input")
-const errorText = document.getElementById("error")
-const summary = document.getElementById("summary")
-const columns = document.querySelectorAll(".column")
+const STATUS = {
+    LIST: "list",
+    PROGRESS: "progress",
+    DONE: "done"
+}
 
-// Har bir vazifa: { id: 1, text: "Read a book", status: "list" }
-// status: "list" | "progress" | "done"
-let tasks = loadTasks()
+const COLUMNS = [
+    { status: STATUS.LIST, title: "List" },
+    { status: STATUS.PROGRESS, title: "Progress" },
+    { status: STATUS.DONE, title: "Done" }
+]
 
-function loadTasks() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY)
-        return saved ? JSON.parse(saved) : []
-    } catch (error) {
-        return []
+function createElement(tag, className, text = "") {
+    const element = document.createElement(tag)
+    element.className = className
+    element.textContent = text
+    return element
+}
+
+class TaskStorage {
+    constructor(key) {
+        this.key = key
     }
-}
 
-function saveTasks() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
-    } catch (error) {
-        // saqlab bo'lmasa ham dastur ishlashda davom etadi
-    }
-}
-
-function addTask(text) {
-    tasks.push({
-        id: Date.now(),
-        text: text,
-        status: "list"
-    })
-    saveTasks()
-    render()
-}
-
-function deleteTask(id) {
-    tasks = tasks.filter(function (task) {
-        return task.id !== id
-    })
-    saveTasks()
-    render()
-}
-
-function moveTask(id, newStatus) {
-    const task = tasks.find(function (task) {
-        return task.id === id
-    })
-    if (!task) return
-
-    task.status = newStatus
-    saveTasks()
-    render()
-}
-
-function createTaskElement(task) {
-    const card = document.createElement("div")
-    card.className = "task"
-    card.draggable = true
-
-    const grip = document.createElement("i")
-    grip.className = "bi bi-grip-vertical grip"
-
-    const text = document.createElement("span")
-    text.className = "task-text"
-    text.textContent = task.text
-
-    const deleteButton = document.createElement("button")
-    deleteButton.className = "delete"
-    deleteButton.setAttribute("aria-label", "Delete task")
-    deleteButton.innerHTML = '<i class="bi bi-x-lg"></i>'
-    deleteButton.addEventListener("click", function () {
-        deleteTask(task.id)
-    })
-
-    card.addEventListener("dragstart", function (e) {
-        e.dataTransfer.setData("text/plain", String(task.id))
-        card.classList.add("dragging")
-    })
-
-    card.addEventListener("dragend", function () {
-        card.classList.remove("dragging")
-    })
-
-    card.append(grip, text, deleteButton)
-    return card
-}
-
-function render() {
-    columns.forEach(function (column) {
-        const status = column.dataset.status
-        const list = column.querySelector(".task-list")
-        const columnTasks = tasks.filter(function (task) {
-            return task.status === status
-        })
-
-        list.textContent = ""
-
-        columnTasks.forEach(function (task) {
-            list.appendChild(createTaskElement(task))
-        })
-
-        if (columnTasks.length === 0) {
-            const empty = document.createElement("p")
-            empty.className = "empty"
-            empty.textContent = "Drop a task here"
-            list.appendChild(empty)
+    load() {
+        try {
+            const saved = localStorage.getItem(this.key)
+            return saved ? JSON.parse(saved) : []
+        } catch (error) {
+            return []
         }
-
-        column.querySelector(".count").textContent = columnTasks.length
-    })
-
-    const doneCount = tasks.filter(function (task) {
-        return task.status === "done"
-    }).length
-    const word = tasks.length === 1 ? "task" : "tasks"
-    summary.textContent = tasks.length + " " + word + ", " + doneCount + " done"
-}
-
-// Add tugmasi yoki Enter bosilganda
-form.addEventListener("submit", function (e) {
-    e.preventDefault()
-
-    const text = input.value.trim()
-    if (text === "") {
-        errorText.textContent = "Enter a task first"
-        input.focus()
-        return
     }
 
-    addTask(text)
-    input.value = ""
-    errorText.textContent = ""
-    input.focus()
-})
+    save(tasks) {
+        try {
+            localStorage.setItem(this.key, JSON.stringify(tasks))
+        } catch (error) {
+            // saqlab bo'lmasa ham dastur ishlashda davom etadi
+        }
+    }
+}
 
-input.addEventListener("input", function () {
-    errorText.textContent = ""
-})
 
-// Drag and drop: har bir ustun vazifani qabul qiladi
-columns.forEach(function (column) {
-    column.addEventListener("dragover", function (e) {
-        e.preventDefault()
-        column.classList.add("drag-over")
-    })
+class TaskStore {
+    constructor(storage) {
+        this.storage = storage
+        this.tasks = storage.load()
+        this.nextId = Math.max(0, ...this.tasks.map(task => task.id)) + 1
+        this.listeners = []
+    }
 
-    column.addEventListener("dragleave", function (e) {
-        if (!column.contains(e.relatedTarget)) {
+    onChange(listener) {
+        this.listeners.push(listener)
+    }
+
+    add(text) {
+        this.tasks.push({ id: this.nextId++, text: text, status: STATUS.LIST })
+        this.commit()
+    }
+
+    remove(id) {
+        this.tasks = this.tasks.filter(task => task.id !== id)
+        this.commit()
+    }
+
+    move(id, status) {
+        const task = this.tasks.find(task => task.id === id)
+        if (!task) return
+
+        task.status = status
+        this.commit()
+    }
+
+    getByStatus(status) {
+        return this.tasks.filter(task => task.status === status)
+    }
+
+    commit() {
+        this.storage.save(this.tasks)
+        this.listeners.forEach(listener => listener())
+    }
+}
+
+class BoardView {
+    constructor(root, columns, onDelete) {
+        this.onDelete = onDelete
+        this.columnElements = new Map()
+
+        columns.forEach(({ status, title }) => {
+            const column = createElement("section", "column")
+            column.dataset.status = status
+
+            const head = createElement("div", "column-head")
+            head.append(createElement("h2", "", title), createElement("span", "count", "0"))
+
+            column.append(head, createElement("div", "task-list"))
+            root.appendChild(column)
+            this.columnElements.set(status, column)
+        })
+    }
+
+    render(getTasks) {
+        this.columnElements.forEach((column, status) => {
+            const tasks = getTasks(status)
+            const list = column.querySelector(".task-list")
+
+            list.textContent = ""
+
+            if (tasks.length === 0) {
+                list.appendChild(createElement("p", "empty", "Drop a task here"))
+            } else {
+                tasks.forEach(task => list.appendChild(this.createCard(task)))
+            }
+
+            column.querySelector(".count").textContent = tasks.length
+        })
+    }
+
+    createCard(task) {
+        const card = createElement("div", "task")
+        card.draggable = true
+        card.dataset.id = task.id
+
+        const deleteButton = createElement("button", "delete")
+        deleteButton.setAttribute("aria-label", "Delete task")
+        deleteButton.appendChild(createElement("i", "bi bi-x-lg"))
+        deleteButton.addEventListener("click", () => this.onDelete(task.id))
+
+        card.append(
+            createElement("i", "bi bi-grip-vertical grip"),
+            createElement("span", "task-text", task.text),
+            deleteButton
+        )
+        return card
+    }
+}
+
+class SummaryView {
+    constructor(element) {
+        this.element = element
+    }
+
+    render(total, done) {
+        const word = total === 1 ? "task" : "tasks"
+        this.element.textContent = `${total} ${word}, ${done} done`
+    }
+}
+
+class AddTaskForm {
+    constructor(form, input, errorElement, onSubmit) {
+        input.addEventListener("input", () => {
+            errorElement.textContent = ""
+        })
+
+        form.addEventListener("submit", event => {
+            event.preventDefault()
+
+            const text = input.value.trim()
+            if (text === "") {
+                errorElement.textContent = "Enter a task first"
+                input.focus()
+                return
+            }
+
+            onSubmit(text)
+            input.value = ""
+            input.focus()
+        })
+    }
+}
+
+class DragAndDrop {
+    constructor(root, onDrop) {
+        root.addEventListener("dragstart", event => {
+            const card = event.target.closest(".task")
+            if (!card) return
+
+            event.dataTransfer.setData("text/plain", card.dataset.id)
+            card.classList.add("dragging")
+        })
+
+        root.addEventListener("dragend", event => {
+            const card = event.target.closest(".task")
+            if (card) card.classList.remove("dragging")
+        })
+
+        root.addEventListener("dragover", event => {
+            const column = event.target.closest(".column")
+            if (!column) return
+
+            event.preventDefault()
+            column.classList.add("drag-over")
+        })
+
+        root.addEventListener("dragleave", event => {
+            const column = event.target.closest(".column")
+            if (column && !column.contains(event.relatedTarget)) {
+                column.classList.remove("drag-over")
+            }
+        })
+
+        root.addEventListener("drop", event => {
+            const column = event.target.closest(".column")
+            if (!column) return
+
+            event.preventDefault()
             column.classList.remove("drag-over")
-        }
-    })
 
-    column.addEventListener("drop", function (e) {
-        e.preventDefault()
-        column.classList.remove("drag-over")
+            const id = Number(event.dataTransfer.getData("text/plain"))
+            onDrop(id, column.dataset.status)
+        })
+    }
+}
 
-        const id = Number(e.dataTransfer.getData("text/plain"))
-        moveTask(id, column.dataset.status)
-    })
-})
+class App {
+    constructor() {
+        const boardElement = document.getElementById("board")
 
-render()
+        this.store = new TaskStore(new TaskStorage(STORAGE_KEY))
+        this.board = new BoardView(boardElement, COLUMNS, id => this.store.remove(id))
+        this.summary = new SummaryView(document.getElementById("summary"))
+
+        new AddTaskForm(
+            document.getElementById("add-form"),
+            document.getElementById("task-input"),
+            document.getElementById("error"),
+            text => this.store.add(text)
+        )
+        new DragAndDrop(boardElement, (id, status) => this.store.move(id, status))
+
+        this.store.onChange(() => this.render())
+        this.render()
+    }
+
+    render() {
+        this.board.render(status => this.store.getByStatus(status))
+        this.summary.render(this.store.tasks.length, this.store.getByStatus(STATUS.DONE).length)
+    }
+}
+
+new App()
